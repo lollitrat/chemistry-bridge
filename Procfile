@@ -1,1 +1,1 @@
-web: python chemistry_bridge.py
+web: gunicorn chemistry_bridge:app
