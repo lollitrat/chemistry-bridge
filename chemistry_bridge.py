@@ -1,27 +1,39 @@
+from flask import Flask, request, jsonify
+import openai
 import os
-from flask import Flask, jsonify
-from openai import OpenAI
 
 app = Flask(__name__)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Get API key from environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @app.route("/")
 def home():
-    return "✅ Chemistry Bridge is running on Render!"
+    return "Chemistry Bridge is running!"
 
-@app.route("/bridge")
-def bridge():
-    prompt = "You are a world-renowned chemist..."
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a famous chemist giving subjective, inspiring answers."},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    final_answer = response.choices[0].message.content
-    return jsonify({"answer": final_answer})
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    question = data.get("question", "")
 
-if _name_ == "_main_":   # ✅ double underscores
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    if not question:
+        return jsonify({"error": "No question provided"}), 400
+
+    # Send the query to GPT
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "You are a famous chemist. Always answer in a thoughtful, subjective tone, as if sharing your own perspective."},
+                {"role": "user", "content": question}
+            ]
+        )
+
+        answer = response["choices"][0]["message"]["content"]
+        return jsonify({"answer": answer})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
