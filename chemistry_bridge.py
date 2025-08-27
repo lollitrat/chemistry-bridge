@@ -1,24 +1,34 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 from openai import OpenAI
 
+# Correct _name_ usage
 app = Flask(_name_)
+
+# Initialize OpenAI client with API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
 def home():
-    return "✅ Chemistry Bridge is running on Render!"
+    return "✅ Chemistry Bridge is live on Render!"
 
 @app.route("/bridge", methods=["GET"])
 def bridge():
-    # Get user question from query parameter
-    user_question = request.args.get("q", "Explain something about chemistry.")
+    # Get the user's question from query parameter ?q=
+    question = request.args.get("q", "Explain a chemistry concept with inspiration.")
 
+    # Call OpenAI with subjective chemist persona
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "You are a famous chemist giving subjective, inspiring answers."},
-            {"role": "user", "content": user_question}
+            {
+                "role": "system",
+                "content": "You are a world-renowned chemist. "
+                           "Answer questions subjectively, with creativity, "
+                           "and in the tonality of famous chemists—"
+                           "not just textbook definitions."
+            },
+            {"role": "user", "content": question}
         ]
     )
 
