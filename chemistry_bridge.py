@@ -2,7 +2,7 @@ import os
 from flask import Flask, jsonify
 from openai import OpenAI
 
-app = Flask(_name_)   # ✅ double underscores
+app = Flask(__name__)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
