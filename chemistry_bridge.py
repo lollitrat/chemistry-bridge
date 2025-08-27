@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request
 from openai import OpenAI
 
 # Correct _name_ usage
-app = Flask(_name_)
+app = Flask(__name__)
 
 # Initialize OpenAI client with API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -35,6 +35,6 @@ def bridge():
     final_answer = response.choices[0].message.content
     return jsonify({"answer": final_answer})
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
