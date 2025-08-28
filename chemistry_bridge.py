@@ -32,14 +32,9 @@ def bridge():
 
         final_answer = response.choices[0].message.content
 
-        # ✅ Schema-safe response
+        # ✅ Schema-safe response (flattened for voiceflow)
         return jsonify({
-            "messages": [
-                {
-                    "type": "text",
                     "content": final_answer
-                }
-            ]
         })
 
     except Exception as e:
