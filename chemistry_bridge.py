@@ -2,38 +2,57 @@ import os
 from flask import Flask, jsonify, request
 from openai import OpenAI
 
-# Correct _name_ usage
 app = Flask(__name__)
-
-# Initialize OpenAI client with API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 @app.route("/")
 def home():
-    return "✅ Chemistry Bridge is live on Render!"
+    return "✅ Chemistry Bridge is live!"
 
-@app.route("/bridge", methods=["GET"])
+@app.route("/bridge", methods=["POST"])
 def bridge():
-    # Get the user's question from query parameter ?q=
-    question = request.args.get("q", "Explain a chemistry concept with inspiration.")
+    try:
+        # Parse JSON input
+        data = request.get_json(force=True)
+        query = data.get("query", "Explain a chemistry concept.")
+        chemist = data.get("chemist", "Marie Curie")
 
-    # Call OpenAI with subjective chemist persona
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a world-renowned chemist. "
-                           "Answer questions subjectively, with creativity, "
-                           "and in the tonality of famous chemists—"
-                           "not just textbook definitions."
-            },
-            {"role": "user", "content": question}
-        ]
-    )
+        # Call OpenAI
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": f"You are {chemist}, a world-renowned chemist. "
+                               f"Answer questions creatively in your own style."
+                },
+                {"role": "user", "content": query}
+            ]
+        )
 
-    final_answer = response.choices[0].message.content
-    return jsonify({"answer": final_answer})
+        final_answer = response.choices[0].message.content
+
+        # ✅ Schema-safe response
+        return jsonify({
+            "messages": [
+                {
+                    "type": "text",
+                    "content": final_answer
+                }
+            ]
+        })
+
+    except Exception as e:
+        # Even errors are schema-safe
+        return jsonify({
+            "messages": [
+                {
+                    "type": "text",
+                    "content": f"⚠️ Error: {str(e)}"
+                }
+            ]
+        }), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
